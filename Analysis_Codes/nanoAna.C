@@ -1,5 +1,5 @@
-#define nano9Ana_cxx
-// The class definition in nano9Ana.h has been generated automatically
+#define nanoAna_cxx
+// The class definition in nanoAna.h has been generated automatically
 // by the ROOT utility TTree::MakeSelector(). This class is derived
 // from the ROOT class TSelector. For more information on the TSelector
 // framework see $ROOTSYS/README/README.SELECTOR or the ROOT User Manual.
@@ -19,17 +19,17 @@
 //
 // To use this file, try the following session on your Tree T:
 //
-// root> T->Process("nano9Ana.C")
-// root> T->Process("nano9Ana.C","some options")
-// root> T->Process("nano9Ana.C+")
+// root> T->Process("nanoAna.C")
+// root> T->Process("nanoAna.C","some options")
+// root> T->Process("nanoAna.C+")
 //
 
 
-#include "nano9Ana.h"
+#include "nanoAna.h"
 #include <TH2.h>
 #include <TStyle.h>
 
-void nano9Ana::Begin(TTree * /*tree*/)
+void nanoAna::Begin(TTree * /*tree*/)
 {
   // The Begin() function is called at the start of the query.
   // When running with PROOF Begin() is only called on the client.
@@ -38,7 +38,7 @@ void nano9Ana::Begin(TTree * /*tree*/)
   TString option = GetOption();
 }
 
-void nano9Ana::SlaveBegin(TTree * /*tree*/)
+void nanoAna::SlaveBegin(TTree * /*tree*/)
 {
   // The SlaveBegin() function is called after the Begin() function.
   // When running with PROOF SlaveBegin() is called on each slave server.
@@ -55,7 +55,7 @@ void nano9Ana::SlaveBegin(TTree * /*tree*/)
   BookHistograms();
 }
 
-void nano9Ana::SlaveTerminate()
+void nanoAna::SlaveTerminate()
 {
   // The SlaveTerminate() function is called after all entries or objects
   // have been processed. When running with PROOF SlaveTerminate() is called
@@ -74,14 +74,14 @@ void nano9Ana::SlaveTerminate()
   fout<<"Total good events  = "<<nEvtTotal<<endl;
 }
 
-void nano9Ana::Terminate()
+void nanoAna::Terminate()
 {
    // The Terminate() function is the last function to be called during
    // a query. It always runs on the client, it can be used to present
    // the results graphically or save the results to file. 
 }
 
-Bool_t nano9Ana::Process(Long64_t entry)
+Bool_t nanoAna::Process(Long64_t entry)
 {
   // The Process() function is called for each entry in the tree (or possibly
   // keyed object in the case of PROOF) to be processed. The entry argument
@@ -99,11 +99,17 @@ Bool_t nano9Ana::Process(Long64_t entry)
   //
   // The return value is currently not used.
   
+  //------------------------------------------------------
+  //Initializing fReaders:
   fReader.SetLocalEntry(entry);
-  if(_data == 0)
-    fReader_MC  .SetLocalEntry(entry);
-  if(_data == 1)
-    fReader_Data.SetLocalEntry(entry);
+  if(_run3)  fReader_Run3.SetLocalEntry(entry);
+  else       fReader_Run2.SetLocalEntry(entry);
+  if(_data == 0){
+    fReader_MC.SetLocalEntry(entry);
+    if(!_run3) fReader_Run2_MC.SetLocalEntry(entry);
+    else       fReader_Run3_MC.SetLocalEntry(entry);
+  }
+  //------------------------------------------------------
 
   //Verbosity determines the number of processed events after which the root prompt is supposed to display a status update.
   if(_verbosity==0 && nEvtTotal%10000==0)cout<<"Processed "<<nEvtTotal<<" event..."<<endl;      
@@ -128,7 +134,7 @@ Bool_t nano9Ana::Process(Long64_t entry)
     //Reco Muon array :
     int nmu = 0;                         // This counts the number of muons in each event.
     RecoMu.clear();                      // Make sure that the array is empty before filling it up.
-    for(unsigned int i=0; i<(*nMuon); i++){
+    for(int i=0; i<(int)*nMuon; i++){
                                          // This loop runs over all the muon candidates. Some of them will pass our selection criteria.
                                          // These will be stored in the RecoMu array.
       Lepton temp;                       // 'temp' is the i-th candidate.
@@ -172,10 +178,14 @@ Bool_t nano9Ana::Process(Long64_t entry)
       h.hist[0] -> Fill(RecoMu.at(0).v.Pt());
     }
     
-
-
-
-
+    //Plotting a variable that was kept in a pointer (because of different name across Run2/Run3)
+    //------------------------------------  Note  -----------------------------------------
+    //ptr_fixedGridRhoFastjetAll is a pointer to a TTreeReaderValue<Float_t>.
+    //*ptr_fixedGridRhoFastjetAll gives you the TTreeReaderValue<Float_t> object.
+    //**ptr_fixedGridRhoFastjetAll gives you the actual float value stored in that object.
+    //-------------------------------------------------------------------------------------
+    h.hist[1]->Fill(**ptr_fixedGridRhoFastjetAll);
+    
     //########### ANALYSIS ENDS HERE ##############
   }//GoodEvt
 
@@ -187,7 +197,7 @@ Bool_t nano9Ana::Process(Long64_t entry)
 //######################################
 //        USER DEFINED FUNCTIONS
 //######################################
-void nano9Ana::SortPt(int opt)
+void nanoAna::SortPt(int opt)
 {
   //This functions sorts an array in the decreasing order of pT.
   //For recoMu:
@@ -201,7 +211,7 @@ void nano9Ana::SortPt(int opt)
   //Repeat this for the other arrays here.
 }
 
-int nano9Ana::GenMother(int ind, int mom_ind)
+int nanoAna::GenMother(int ind, int mom_ind)
 {
   int p_id = GenPart_pdgId[ind];
   int m_id = GenPart_pdgId[mom_ind];
@@ -214,7 +224,7 @@ int nano9Ana::GenMother(int ind, int mom_ind)
   return m_id;
 }
 
-float nano9Ana::delta_phi(float phi1, float phi2)
+float nanoAna::delta_phi(float phi1, float phi2)
 {
   //The correct deltaPhi falls in the interval [0 , pi]
   phi1 = TVector2::Phi_0_2pi(phi1);
@@ -224,20 +234,21 @@ float nano9Ana::delta_phi(float phi1, float phi2)
   return dphi;
 }
 
-float nano9Ana::transv_mass(float E_lep, float MET, float dphi)
+float nanoAna::transv_mass(float E_lep, float MET, float dphi)
 {
   //The inputs are the Energy of the lepton, MET and dPhi between the lepton and MET
   float mT = sqrt(2* E_lep * MET *(1-cos(dphi)));
   return mT;
 }
 
-void nano9Ana::BookHistograms()
+void nanoAna::BookHistograms()
 {
   //The histograms are booked here.
   //Binning etc are done here.
   //These histograms are stored in the hst_<process name>.root file in the same order.
   
   h.hist[0] = new TH1F("leading_muon_pT", "leading muon pT", 200, 0, 200);
+  h.hist[1] = new TH1F("ptr_fixedGridRhoFastjetAll", "ptr_fixedGridRhoFastjetAll", 200, 0, 200);
   //Example : new TH1F ("hst_name", "hst title", total bins, initial x, final x);
   
 }
