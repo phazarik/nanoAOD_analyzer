@@ -38,20 +38,18 @@ private:
   // I am using my own customized types as follows.
   // Uncomment the section that you need.
   // Set the booelan _run3 accordingly.
-  
-  //for Run3:
-  /*
-    using iterator     = Int_t;
-    using int_or_char  = UChar_t;
-    using int_or_short = Short_t;
-    using int_or_ushort = UShort_t;*/
 
+  //for Run3:
+  using iterator     = Int_t;
+  using int_or_char  = UChar_t;
+  using int_or_short = Short_t;
+  using int_or_ushort = UShort_t;
+  /*
   //for Run2
   using iterator     = UInt_t; 
   using int_or_char  = Int_t;
   using int_or_short = Int_t;
-  using int_or_ushort = Int_t; 
-
+  using int_or_ushort = Int_t;*/
 
 public :
   TTreeReader     fReader;
@@ -490,7 +488,7 @@ void nanoAna::Init(TTree *tree)
   // (once per file to be processed).
 
   //Decide whether to Run on Run2 or Run3
-  _run3 = false;
+  _run3 = true;
   
   //Setting up the fReaders:
   fReader                .SetTree(tree);
