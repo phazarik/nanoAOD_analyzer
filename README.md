@@ -11,19 +11,20 @@ Welcome! This repository is a quick-start guide for undergraduates stepping into
 No worries - I've got you covered. This repository is self-contained. Follow the steps below to ease into the workflow.
 - Begin with the `Overlay` example.
 - I've included a couple of example `.root` files that contain histograms. These are kept as follows.
-```
-└── Analysis_Codes
+   ```
+  └── Analysis_Codes
     └──  hst_files
         ├── hst_DYM50.root
-        └── hst_ttjets.root 
-```
+        └── hst_ttjets.root
+     ```
+        
 - Using these input files, try exploring the different features of ROOT classes by playing around with [overlay.C](Overlay/overlay.C). More information on how to run this can be found [here](Overlay/README.md).
 - Once you are comfortable with overlaying histograms, you can produce your own histograms using the analysis codes. The detailed instructions for this can be found [here](Analysis_Codes/README.md). I have included a test file containing ZZto4L events that correspond to data taken in 2022 in the CMS detector.
-```
-└──  Analysis_Codes
-    └── inputs
+  ```
+  └──  Analysis_Codes
+        └── inputs
         └── testfile_Run3Summer22.root
-```
+     ```
 
 ### 📦 Want More Samples?
 Contact me if you'd like more example files from different physics processes, I'm happy to help!
