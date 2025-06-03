@@ -16,14 +16,19 @@
 #include <TTreeReaderValue.h>
 #include <TTreeReaderArray.h>
 
+//Standard headers:
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <iomanip>
+#include <string>
+
 // Headers needed by this particular selector
 #include <vector>
 #include <TH1.h>
 #include <TH2.h>
 #include <TMath.h>
 #include "TLorentzVector.h"
-#include <fstream>
-#include <iostream>
 #include "TString.h"
 #include <bitset>
 
@@ -39,17 +44,20 @@ private:
   // Uncomment the section that you need.
   // Set the booelan _run3 accordingly.
 
-  //for Run3:
+  //for Run3 (NanoAODv12+):
   using iterator     = Int_t;
   using int_or_char  = UChar_t;
   using int_or_short = Short_t;
   using int_or_ushort = UShort_t;
+  using uint_or_int   = Int_t;
+  
   /*
-  //for Run2
+  //for Run2 (NanoAODv11-)
   using iterator     = UInt_t; 
   using int_or_char  = Int_t;
   using int_or_short = Int_t;
-  using int_or_ushort = Int_t;*/
+  using int_or_ushort = Int_t;
+  using uint_or_int  = UInt_t;*/
 
 public :
   TTreeReader     fReader;
@@ -316,7 +324,7 @@ public :
   TTreeReaderArray<Float_t> GenVisTau_mass =             {fReader_MC, "GenVisTau_mass"};
   TTreeReaderArray<Float_t> GenVisTau_phi =              {fReader_MC, "GenVisTau_phi"};
   TTreeReaderArray<Float_t> GenVisTau_pt =               {fReader_MC, "GenVisTau_pt"};
-  TTreeReaderArray<Int_t>   GenVisTau_charge =           {fReader_MC, "GenVisTau_charge"};
+  TTreeReaderArray<int_or_short>   GenVisTau_charge =           {fReader_MC, "GenVisTau_charge"};
   TTreeReaderArray<int_or_short> GenVisTau_genPartIdxMother = {fReader_MC, "GenVisTau_genPartIdxMother"};
   TTreeReaderArray<int_or_char>  GenVisTau_status =           {fReader_MC, "GenVisTau_status"};
 
@@ -460,11 +468,12 @@ private:
   const char *_SumFileName;
   int _verbosity,_exclude;
   int _data, _lep, _year, _sample;
-  int nEvtTotal, nEvtRan; //Counters
   bool GoodEvt, GoodEvt2016, GoodEvt2017, GoodEvt2018; //Flags
-  //float metpt, metphi;
+  float metpt, metphi;
   TString _era;
   //Event counters can be declared here.
+  int nEvtTotal, nEvtRan; //Counters
+  time_t start, end, buffer;
   
   //######################
   // Declare arrays here:

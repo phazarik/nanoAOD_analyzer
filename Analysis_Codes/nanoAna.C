@@ -24,10 +24,16 @@
 // root> T->Process("nanoAna.C+")
 //
 
-
 #include "nanoAna.h"
 #include <TH2.h>
 #include <TStyle.h>
+
+//Standard headers:
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <iomanip>
+#include <string>
 
 void nanoAna::Begin(TTree * /*tree*/)
 {
@@ -45,6 +51,11 @@ void nanoAna::SlaveBegin(TTree * /*tree*/)
   // The tree argument is deprecated (on PROOF 0 is passed).
   
   TString option = GetOption();
+  time(&start);
+  
+  cout<<"Input parameters:"<<endl;
+  cout<<"Data/MC = "<< _data << " (0=MC, 1=Data)" <<endl;
+  cout<<"Year = "<<_year<<endl; 
   
   //Initialization of the counters:
   nEvtRan        = 0;
@@ -53,6 +64,8 @@ void nanoAna::SlaveBegin(TTree * /*tree*/)
 
    _HstFile = new TFile(_HstFileName,"recreate");
   BookHistograms();
+
+  cout<<"\nn-events time(sec)"<<endl;
 }
 
 void nanoAna::SlaveTerminate()
@@ -62,16 +75,22 @@ void nanoAna::SlaveTerminate()
   // on each slave server.
   
    _HstFile->Write();
-  _HstFile->Close();
+   _HstFile->Close();
 
   //The following lines are displayed on the root prompt.
-  cout<<"Total events ran = "<<nEvtRan<<endl;
-  cout<<"Total good events = "<<nEvtTotal<<endl;
+   cout<<"----------------------------------------"<<endl;
+   cout<<"Total events ran = "<<nEvtRan<<endl;
+   cout<<"Total good events = "<<nEvtTotal<<endl;
 
   //The following lines are written on the sum_<process name>.txt file
   ofstream fout(_SumFileName);
   fout<<"Total events ran = "<<nEvtRan<<endl;
   fout<<"Total good events  = "<<nEvtTotal<<endl;
+
+  time(&end);
+  double time_taken = double(end-start);
+  cout<<"\nTime taken by the programe is = "<<fixed<<time_taken<<setprecision(5);
+  cout<<" sec \n"<<endl;
 }
 
 void nanoAna::Terminate()
@@ -83,6 +102,8 @@ void nanoAna::Terminate()
 
 Bool_t nanoAna::Process(Long64_t entry)
 {
+  nEvtTotal++;   //Total number of events in the file
+
   // The Process() function is called for each entry in the tree (or possibly
   // keyed object in the case of PROOF) to be processed. The entry argument
   // specifies which entry in the currently loaded tree is to be processed.
@@ -111,9 +132,10 @@ Bool_t nanoAna::Process(Long64_t entry)
   }
   //------------------------------------------------------
 
-  //Verbosity determines the number of processed events after which the root prompt is supposed to display a status update.
-  if(_verbosity==0 && nEvtTotal%10000==0)cout<<"Processed "<<nEvtTotal<<" event..."<<endl;      
-  else if(_verbosity>0 && nEvtTotal%10000==0)cout<<"Processed "<<nEvtTotal<<" event..."<<endl;
+  //Setting verbosity:
+  time(&buffer);
+  double time_buff = double(buffer-start);
+  if (nEvtTotal % _verbosity == 0) cout << setw(10) << left << nEvtTotal << " " << (int)time_buff << endl;
   
   //The following flags throws away some trash events
   GoodEvt2018 = (_year==2018 ? *Flag_goodVertices && *Flag_globalSuperTightHalo2016Filter && *Flag_HBHENoiseFilter && *Flag_HBHENoiseIsoFilter && *Flag_EcalDeadCellTriggerPrimitiveFilter && *Flag_BadPFMuonFilter && (_data ? *Flag_eeBadScFilter : 1) : 1);
@@ -122,10 +144,10 @@ Bool_t nanoAna::Process(Long64_t entry)
   
   GoodEvt = GoodEvt2018 && GoodEvt2017 && GoodEvt2016;
   
-  nEvtRan++;                             //Total number of events containing everything (including the trash events).
-  
   if(GoodEvt){
-    nEvtTotal++;                         //Total number of events containing goodEvents
+
+    nEvtRan++;  //Total number of good events
+ 
                                          //The analysis is done for these good events.
 
 
