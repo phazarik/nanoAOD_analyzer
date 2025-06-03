@@ -40,19 +40,20 @@ float get_nevents_err(TH1F *hst, float bin_lo, float bin_hi);
 void overlay()
 {
   //First declare the file names (just strings)
-  TString filename1 = "../Analysis_Codes/hst_files/hst_data.root";
-  TString filename2 = "../Analysis_Codes/hst_files/hst_WZ.root";;
+  TString filename1 = "../Analysis_Codes/hst_files/hst_DYM50.root";
+  TString filename2 = "../Analysis_Codes/hst_files/hst_ttjets.root";;
 
   //Declare other constants, strings that you might need here.
 
   //Declare the name of the plot that you want to overlay
   //(you can open the histogram file to see other names)
-  TString plotname1 = "leading_muon_pT";
-  TString plotname2 = "leading_muon_pT"; //(here we are picking the same plot from other file)
+  TString plotname1 = "mass_mumu_1";
+  TString plotname2 = "mass_mumu_1"; //(here we are picking the same plot from other file)
 
-
+  TString titlename = "Dimuon invariant mass";
+  
   //Also give fancy name for the axis titles
-  TString xtitle = "pT (leading #mu) [GeV]"; // Can use latex-type commands
+  TString xtitle = "M_{#mu#mu} [GeV]"; // Can use latex-type commands
                                                // in strings. For example
                                                // "#mu^{1} p_{T}"
   TString ytitle = "Entries"; // Or "Events"
@@ -65,12 +66,11 @@ void overlay()
   TH1F *h1 = (TH1F*)file1->Get(plotname1);
   TH1F *h2 = (TH1F*)file2->Get(plotname2);
 
-
-  //Decorate the histograms using function decorate
+  //Decorate the histograms using the custom made function
   // See function definition below for syntax
   // See https://root.cern.ch/root/html/TColor.html for color names.
-  decorate(h1,xtitle,ytitle,"",kBlue,2,kBlue-7,20,1);
-  decorate(h2,xtitle,ytitle,"",kRed,2,kGreen+2,21,0);
+  decorate(h1,xtitle,ytitle,titlename,kBlue,2,kBlue-7,20,1);
+  decorate(h2,xtitle,ytitle,titlename,kRed,2,kGreen+2,21,0);
 
 
   //Now let us set the last bin as the overflow bin
@@ -80,7 +80,7 @@ void overlay()
     h2->SetBinContent(nbins,h2->GetBinContent(nbins+1)+h2->GetBinContent(nbins));
   */
 
-  // Now rebin the histograms if needed
+  // Rebin the histograms if needed
   // Group nrebins bins together
   /*
     int nrebins = 2;
@@ -94,6 +94,7 @@ void overlay()
      Conventionally, when comparing shapes, we normalize to 1, so let us
      try that here.
   */
+
   h1->Scale(1.0/h1->Integral());
   h2->Scale(1.0/h2->Integral());
 
