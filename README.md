@@ -29,5 +29,5 @@ No worries - I've got you covered. This repository is self-contained. Follow the
 ### 📦 Want More Samples?
 Contact me if you'd like more example files from different physics processes, I'm happy to help!
 
-[![Discord](https://img.shields.io/badge/Discord-phazarik-5865F2?logo=discord&logoColor=white&style=for-the-badge)](#)  
-[![Email](https://img.shields.io/badge/Email-prachurjya.hazarika%40students.iiserpune.ac.in-D14836?logo=gmail&logoColor=white&style=for-the-badge)](mailto:prachurjya.hazarika@students.iiserpune.ac.in)
+![Discord](https://img.shields.io/badge/Discord-%40phazarik-5865F2?logo=discord&logoColor=white&style=for-the-badge)           
+![Email](https://img.shields.io/badge/Email-prachurjya.hazarika%40students.iiserpune.ac.in-D14836?logo=gmail&logoColor=white&style=for-the-badge)
