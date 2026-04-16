@@ -1,0 +1,49 @@
+===== DNN TRAINING CONFIGURATION =====
+Model name        : DY-vs-VLLD_Run3_Feb19
+Input features    : 6
+Epochs            : 50
+Batch size        : 1024
+
+--- Dataset sizes ---
+Signal before filtering     : 439911
+Background before filtering : 666374
+Signal in training          : 307938
+Signal in testing           : 131973
+Background in training      : 466461
+Background in testing       : 199913
+
+--- Training variables ---
+dilep_dphi, dilep_eta, dilep_ptratio, HT, LT, metpt
+
+--- Compilation ---
+Optimizer : Adam
+Loss      : binary_crossentropy
+Metrics   : loss, compile_metrics
+
+--- Class weights ---
+Class 0 : weight = 0.8301
+Class 1 : weight = 1.2574
+
+--- Callbacks ---
+EarlyStopping    : monitor=val_loss, patience=15, restore_best_weights=True
+ReduceLROnPlateau: monitor=val_loss, patience=10, factor=0.5, min_lr=1e-06
+
+--- DNN structure (Keras summary) ---
+
+Model: "sequential"
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Layer (type)                    ┃ Output Shape           ┃       Param # ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ dense (Dense)                   │ (None, 64)             │           448 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dense_1 (Dense)                 │ (None, 32)             │         2,080 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dense_2 (Dense)                 │ (None, 1)              │            33 │
+└─────────────────────────────────┴────────────────────────┴───────────────┘
+ Total params: 7,685 (30.02 KB)
+ Trainable params: 2,561 (10.00 KB)
+ Non-trainable params: 0 (0.00 B)
+ Optimizer params: 5,124 (20.02 KB)
+
+
+======================================

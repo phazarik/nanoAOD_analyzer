@@ -65,6 +65,24 @@ void nanoAna::SlaveBegin(TTree * /*tree*/)
    _HstFile = new TFile(_HstFileName,"recreate");
   BookHistograms();
 
+  // ----------------------------------------------------------------------------------
+  // Loading DNNs and scaling parameters:
+
+  // One Environment to rule them all
+  ort_env = new Ort::Env(ORT_LOGGING_LEVEL_WARNING, "MultiDNN_Inference");
+  Ort::SessionOptions session_options;
+  session_options.SetIntraOpNumThreads(1);
+    
+  // Load model for DY-vs-VLLD:
+  TString path_dy = "../trained_models/DY-vs-VLLD_Run3_Feb19/";
+  session_dy = new Ort::Session(*ort_env, (path_dy + "model_DY-vs-VLLD_Run3_Feb19.onnx").Data(), session_options);
+  scale_min_dy = load_scaling_parameters((path_dy + "scaling_parameters_min.txt").Data());
+  scale_max_dy = load_scaling_parameters((path_dy + "scaling_parameters_max.txt").Data());
+
+  // Similarly load other models ...
+  
+  //-----------------------------------------------------------------------------------
+  
   cout<<"\nn-events time(sec)"<<endl;
 }
 
@@ -178,6 +196,23 @@ Bool_t nanoAna::Process(Long64_t entry)
     
     SortPt(0);                           //The RecoMu array has been organised in the decreasing order of pT.
 
+
+    //Reco jets:
+    int njet = 0;
+    RecoJet.clear();
+    for(int i=0; i<(int)*nJet; i++){
+      Lepton temp;
+      temp.v.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
+
+      temp.ind = i;
+      bool passCuts = temp.v.Pt()>50 && fabs(temp.v.Eta())<2.4 && (int)Jet_jetId[i]>=2;
+      if(passCuts){
+	RecoJet.push_back(temp);
+	njet++;
+      }
+    }
+    SortPt(1);
+    
     //Other arrays, such as RecoEle, GenMu, GenEle can be constructed here.
 
 
@@ -207,6 +242,46 @@ Bool_t nanoAna::Process(Long64_t entry)
     //**ptr_fixedGridRhoFastjetAll gives you the actual float value stored in that object.
     //-------------------------------------------------------------------------------------
     h.hist[1]->Fill(**ptr_fixedGridRhoFastjetAll);
+
+
+
+    // --------------- DNN section -----------------
+    // The example model is trained to classify VLL against DY in 2L phase space.
+    // It requires input variables that are defined in 2L events.
+    // In this example, we will strick to exclusively 2-mu events.
+    //
+    // Files needed:
+    //  - model_DY-vs-VLLD_Run3_Feb19.onnx
+    //  - scaling_parameters_min.txt
+    //  - scaling_parameters_max.txt
+    //
+    // input variables (in order): dilep_dphi, dilep_eta, dilep_ptratio, HT, LT, metpt
+
+    float score_dy = -99; //dummy value to keep the invalid events
+    
+    if((int)RecoMu.size()==2){ //Pick the right phase space.
+      
+      // Prepare the training variables and create arrays for the DNNs.
+      float dilep_dphi = delta_phi(RecoMu.at(0).v.Phi(), RecoMu.at(1).v.Phi());
+      float dilep_eta = (RecoMu.at(0).v + RecoMu.at(1).v).Eta();
+      float dilep_ptratio = RecoMu.at(1).v.Pt()/RecoMu.at(0).v.Pt();
+      float HT = 0; for(int i=0; i<(int)RecoJet.size(); i++) HT += RecoJet.at(i).v.Pt();
+      float LT = RecoMu.at(0).v.Pt() + RecoMu.at(1).v.Pt();
+      float metpt = *PuppiMET_pt;
+
+      // Evaluate score 1:
+      std::vector<float> invar_dy = {dilep_dphi, dilep_eta, dilep_ptratio, HT, LT, metpt};
+      score_dy = evaluateDNN(session_dy, invar_dy, scale_min_dy, scale_max_dy, "input", "keras_tensor_3");
+
+      // Note: The input and output node names ("input", "keras_tensor_3") are
+      // specific to how this model was saved. Verify this via https://netron.app/.
+
+      // Similarly evaluate for other scores.
+
+    }
+    
+    h.hist[2]->Fill(score_dy); // Includes dummy values as well.
+    // ---------------------------------------------
     
     //########### ANALYSIS ENDS HERE ##############
   }//GoodEvt
@@ -227,9 +302,12 @@ void nanoAna::SortPt(int opt)
     for(int i=0; i<(int)RecoMu.size()-1; i++){
       for(int j=i+1; j<(int)RecoMu.size(); j++){
 	if( RecoMu[i].v.Pt() < RecoMu[j].v.Pt() ) swap(RecoMu.at(i),RecoMu.at(j));
-      }
-    }
-  }
+      }}}
+  if(opt==1){
+    for(int i=0; i<(int)RecoJet.size()-1; i++){
+      for(int j=i+1; j<(int)RecoJet.size(); j++){
+	if( RecoJet[i].v.Pt() < RecoJet[j].v.Pt() ) swap(RecoJet.at(i),RecoJet.at(j));
+      }}}
   //Repeat this for the other arrays here.
 }
 
@@ -271,6 +349,73 @@ void nanoAna::BookHistograms()
   
   h.hist[0] = new TH1F("leading_muon_pT", "leading muon pT", 200, 0, 200);
   h.hist[1] = new TH1F("ptr_fixedGridRhoFastjetAll", "ptr_fixedGridRhoFastjetAll", 200, 0, 200);
+  h.hist[2] = new TH1F("dnn_score_1", "dnn_score_1", 100, 0, 1);
   //Example : new TH1F ("hst_name", "hst title", total bins, initial x, final x);
   
+}
+
+// DNN specific functions:
+vector<float> nanoAna::load_scaling_parameters(const char* filename) 
+{
+  vector<float> params;
+  ifstream file(filename);    
+  if (!file.is_open()) {
+    cerr << "ERROR: Could not open scaling parameter file: " << filename << endl;
+    return params;
+  }
+  float val;
+  while(file >> val)  params.push_back(val);
+  file.close();
+  return params;
+}
+float nanoAna::evaluateDNN(Ort::Session* session, 
+                  std::vector<float> input_vars, 
+                  const std::vector<float>& scale_min, 
+                  const std::vector<float>& scale_max,
+                  const char* input_name,
+                  const char* output_name)
+{
+  int debug_evt = 500;
+  if(nEvtTotal==debug_evt) cout << "[DEBUG] test event: "<<debug_evt<<endl;
+
+  // 1. Normalize data between [-1, 1] (same as training)
+  for(size_t i = 0; i < input_vars.size(); i++) {
+    float raw = input_vars[i];
+    float diff = scale_max[i] - scale_min[i];
+    if(diff != 0) input_vars[i] = 2.0 * ((raw - scale_min[i]) / diff) - 1.0;
+    else          input_vars[i] = 0.0; // Handle constant features
+    if(nEvtTotal == debug_evt)
+      cout << "[DEBUG] Feature " << i << ": Raw=" << raw << " | Scaled=" << input_vars[i] << endl;
+  }
+      
+  // 2. Setup memory and define tensor shape: [batch_size, number_of_features]
+  Ort::MemoryInfo memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
+  std::vector<int64_t> input_shape = {1, static_cast<int64_t>(input_vars.size())}; 
+
+  // 3. Convert the C++ vector into an ONNX tensor object
+  Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
+							    memory_info,         // CPU memory allocation
+							    input_vars.data(),   // Pointer to scaled float data
+							    input_vars.size(),   // Total number of data points
+							    input_shape.data(),  // Pointer to the shape array
+							    input_shape.size()); // Number of dimensions (2)
+
+  // 4. Define the exact node names baked into the ONNX model
+  const char* input_names[]  = {input_name};  // Where the data goes in
+  const char* output_names[] = {output_name}; // Where the prediction comes out
+
+  // 5. Fire the inference engine
+  auto output_tensors = session->Run(
+				     Ort::RunOptions{nullptr}, // Default run options
+				     input_names,              // Target input layer, depends on the model type
+				     &input_tensor,            // Our formatted data
+				     1,                        // Number of input tensors being passed
+				     output_names,             // Target output layer, depends on the model type
+				     1);                       // Number of output tensors are expected back
+
+  // 6. Extract the raw prediction score and return it
+  float* floatarr = output_tensors.front().GetTensorMutableData<float>();
+  float final_score = floatarr[0];
+  if(nEvtTotal==debug_evt) cout << "[DEBUG] >>> Model Output Score: " << final_score << endl;
+  return final_score;
 }

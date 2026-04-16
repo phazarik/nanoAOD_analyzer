@@ -32,6 +32,11 @@
 #include "TString.h"
 #include <bitset>
 
+// Headers specific to DNNs
+#include "../onnxruntime-linux-x64-1.24.4/include/onnxruntime_cxx_api.h"
+#include <TVector3.h>
+#include <TVector2.h>
+
 class nanoAna : public TSelector {
 
 public:
@@ -163,6 +168,7 @@ public :
   TTreeReaderArray<int_or_char>   Jet_nElectrons = {fReader, "Jet_nElectrons"};
   TTreeReaderArray<int_or_char>   Jet_nMuons = {fReader, "Jet_nMuons"};
 
+  /*
   //MET
   TTreeReaderValue<Float_t> MET_MetUnclustEnUpDeltaX = {fReader, "MET_MetUnclustEnUpDeltaX"};
   TTreeReaderValue<Float_t> MET_MetUnclustEnUpDeltaY = {fReader, "MET_MetUnclustEnUpDeltaY"};
@@ -173,7 +179,7 @@ public :
   TTreeReaderValue<Float_t> MET_pt =                   {fReader, "MET_pt"};
   TTreeReaderValue<Float_t> MET_significance =         {fReader, "MET_significance"};
   TTreeReaderValue<Float_t> MET_sumEt =                {fReader, "MET_sumEt"};
-  TTreeReaderValue<Float_t> MET_sumPtUnclustered =     {fReader, "MET_sumPtUnclustered"};
+  TTreeReaderValue<Float_t> MET_sumPtUnclustered =     {fReader, "MET_sumPtUnclustered"};*/
 
   //Muons
   TTreeReaderValue<iterator> nMuon = {fReader, "nMuon"};
@@ -226,6 +232,7 @@ public :
   TTreeReaderArray<UChar_t> Muon_tkIsoId = {fReader, "Muon_tkIsoId"};
   TTreeReaderArray<Bool_t>  Muon_triggerIdLoose = {fReader, "Muon_triggerIdLoose"};
 
+  /*
   //Photon
   TTreeReaderValue<iterator> nPhoton =            {fReader, "nPhoton"};
   TTreeReaderArray<Float_t> Photon_energyErr =   {fReader, "Photon_energyErr"};
@@ -246,7 +253,7 @@ public :
   TTreeReaderArray<Bool_t>  Photon_mvaID_WP80 =  {fReader, "Photon_mvaID_WP80"};
   TTreeReaderArray<Bool_t>  Photon_mvaID_WP90 =  {fReader, "Photon_mvaID_WP90"};
   TTreeReaderArray<Bool_t>  Photon_pixelSeed =   {fReader, "Photon_pixelSeed"};
-  TTreeReaderArray<UChar_t> Photon_seedGain =    {fReader, "Photon_seedGain"};
+  TTreeReaderArray<UChar_t> Photon_seedGain =    {fReader, "Photon_seedGain"};*/
 
   //PuppiMET
   TTreeReaderValue<Float_t> PuppiMET_phi =                {fReader, "PuppiMET_phi"};
@@ -257,6 +264,7 @@ public :
   TTreeReaderValue<Float_t> PuppiMET_ptJESUp =            {fReader, "PuppiMET_ptJESUp"};
   TTreeReaderValue<Float_t> PuppiMET_sumEt =              {fReader, "PuppiMET_sumEt"};
 
+  /*
   //Tau
   TTreeReaderValue<iterator> nTau = {fReader, "nTau"};
   TTreeReaderArray<Float_t> Tau_chargedIso = {fReader, "Tau_chargedIso"};
@@ -296,7 +304,7 @@ public :
   TTreeReaderArray<int_or_ushort>  TrigObj_id =         {fReader, "TrigObj_id"};
   TTreeReaderArray<Int_t>   TrigObj_l1iso =      {fReader, "TrigObj_l1iso"};
   TTreeReaderArray<int_or_short>  TrigObj_l1charge =   {fReader, "TrigObj_l1charge"};
-  TTreeReaderArray<Int_t>   TrigObj_filterBits = {fReader, "TrigObj_filterBits"};
+  TTreeReaderArray<Int_t>   TrigObj_filterBits = {fReader, "TrigObj_filterBits"};*/
 
   //_______________________________________________________________________
   
@@ -318,6 +326,7 @@ public :
   TTreeReaderArray<Int_t>   GenPart_status =           {fReader_MC, "GenPart_status"};
   //TTreeReaderArray<Int_t>   GenPart_statusFlags =      {fReader_MC, "GenPart_statusFlags"};
 
+  /*
   //GenVisTau
   TTreeReaderValue<iterator> nGenVisTau =                 {fReader_MC, "nGenVisTau"};
   TTreeReaderArray<Float_t> GenVisTau_eta =              {fReader_MC, "GenVisTau_eta"};
@@ -326,7 +335,7 @@ public :
   TTreeReaderArray<Float_t> GenVisTau_pt =               {fReader_MC, "GenVisTau_pt"};
   TTreeReaderArray<int_or_short>   GenVisTau_charge =           {fReader_MC, "GenVisTau_charge"};
   TTreeReaderArray<int_or_short> GenVisTau_genPartIdxMother = {fReader_MC, "GenVisTau_genPartIdxMother"};
-  TTreeReaderArray<int_or_char>  GenVisTau_status =           {fReader_MC, "GenVisTau_status"};
+  TTreeReaderArray<int_or_char>  GenVisTau_status =           {fReader_MC, "GenVisTau_status"};*/
 
   //GenMET
   TTreeReaderValue<Float_t> GenMET_phi =         {fReader_MC, "GenMET_phi"};
@@ -381,8 +390,8 @@ public :
   TTreeReaderValue<Float_t> fixedGridRhoFastjetCentralCalo =    {fReader_Run2, "fixedGridRhoFastjetCentralCalo"};
   TTreeReaderValue<Float_t> fixedGridRhoFastjetCentralChargedPileUp = {fReader_Run2, "fixedGridRhoFastjetCentralChargedPileUp"};
   TTreeReaderValue<Float_t> fixedGridRhoFastjetCentralNeutral = {fReader_Run2, "fixedGridRhoFastjetCentralNeutral"};
-  TTreeReaderArray<Float_t> Photon_pfRelIso03_all = {fReader_Run2, "Photon_pfRelIso03_all"};
-  TTreeReaderArray<Float_t> Photon_pfRelIso03_chg = {fReader_Run2, "Photon_pfRelIso03_chg"};
+  //TTreeReaderArray<Float_t> Photon_pfRelIso03_all = {fReader_Run2, "Photon_pfRelIso03_all"};
+  //TTreeReaderArray<Float_t> Photon_pfRelIso03_chg = {fReader_Run2, "Photon_pfRelIso03_chg"};
 
   //----------------------------------------------------------------------------------------------------------
   //Run3 only:
@@ -391,8 +400,8 @@ public :
   TTreeReaderValue<Float_t> Rho_fixedGridRhoFastjetCentralCalo =    {fReader_Run3, "Rho_fixedGridRhoFastjetCentralCalo"};
   TTreeReaderValue<Float_t> Rho_fixedGridRhoFastjetCentralChargedPileUp = {fReader_Run3, "Rho_fixedGridRhoFastjetCentralChargedPileUp"};
   TTreeReaderValue<Float_t> Rho_fixedGridRhoFastjetCentralNeutral = {fReader_Run3, "Rho_fixedGridRhoFastjetCentralNeutral"};
-  TTreeReaderArray<Float_t> Photon_pfRelIso03_all_quadratic = {fReader_Run3, "Photon_pfRelIso03_all_quadratic"};
-  TTreeReaderArray<Float_t> Photon_pfRelIso03_chg_quadratic = {fReader_Run3, "Photon_pfRelIso03_chg_quadratic"};
+  //TTreeReaderArray<Float_t> Photon_pfRelIso03_all_quadratic = {fReader_Run3, "Photon_pfRelIso03_all_quadratic"};
+  //TTreeReaderArray<Float_t> Photon_pfRelIso03_chg_quadratic = {fReader_Run3, "Photon_pfRelIso03_chg_quadratic"};
 
   //---------------------------------------------------------------------------------------------------------
   // Declare (global) pointers to keep the variables which are of the same type, but different names (e.g. Rho variables). Assign the address of the right TTreeReaderValue (or Array) to the pointers in the Init function.
@@ -403,8 +412,8 @@ public :
   TTreeReaderValue<Float_t>* ptr_fixedGridRhoFastjetCentralCalo = nullptr;
   TTreeReaderValue<Float_t>* ptr_fixedGridRhoFastjetCentralChargedPileUp = nullptr;
   TTreeReaderValue<Float_t>* ptr_fixedGridRhoFastjetCentralNeutral = nullptr;
-  TTreeReaderArray<Float_t>* ptr_Photon_pfRelIso03_all = nullptr;
-  TTreeReaderArray<Float_t>* ptr_Photon_pfRelIso03_chg = nullptr;
+  //TTreeReaderArray<Float_t>* ptr_Photon_pfRelIso03_all = nullptr;
+  //TTreeReaderArray<Float_t>* ptr_Photon_pfRelIso03_chg = nullptr;
   
   //__________________________________________________________________________________________________________
   //__________________________________________________________________________________________________________
@@ -478,7 +487,26 @@ private:
   //######################
   // Declare arrays here:
   //######################
-  vector<Lepton> RecoMu;
+  vector<Lepton> RecoMu, RecoJet;
+
+  // Global variables for DNNs:
+  Ort::Env* ort_env; 
+
+  // DNN 1: DY-vs-VLLD
+  Ort::Session* session_dy;
+  std::vector<float> scale_min_dy;
+  std::vector<float> scale_max_dy;
+
+  // Add other DNN sessions here ...
+
+  // DNN specific functions:
+  vector<float> load_scaling_parameters(const char* filename);
+  float evaluateDNN(Ort::Session* session, 
+		    std::vector<float> input_vars, 
+		    const std::vector<float>& scale_min, 
+		    const std::vector<float>& scale_max,
+		    const char* input_name = "input",    //Specific to the model
+		    const char* output_name = "output"); //Specific to the model
   
   ClassDef(nanoAna,0);
   
@@ -518,8 +546,8 @@ void nanoAna::Init(TTree *tree)
     ptr_fixedGridRhoFastjetCentralCalo =          &Rho_fixedGridRhoFastjetCentralCalo;
     ptr_fixedGridRhoFastjetCentralChargedPileUp = &Rho_fixedGridRhoFastjetCentralChargedPileUp;
     ptr_fixedGridRhoFastjetCentralNeutral =       &Rho_fixedGridRhoFastjetCentralNeutral;
-    ptr_Photon_pfRelIso03_all =                   &Photon_pfRelIso03_all_quadratic;
-    ptr_Photon_pfRelIso03_chg =                   &Photon_pfRelIso03_chg_quadratic;
+    //ptr_Photon_pfRelIso03_all =                   &Photon_pfRelIso03_all_quadratic;
+    //ptr_Photon_pfRelIso03_chg =                   &Photon_pfRelIso03_chg_quadratic;
   }
   else{
     ptr_fixedGridRhoFastjetAll =                  &fixedGridRhoFastjetAll;
@@ -527,8 +555,8 @@ void nanoAna::Init(TTree *tree)
     ptr_fixedGridRhoFastjetCentralCalo =          &fixedGridRhoFastjetCentralCalo;
     ptr_fixedGridRhoFastjetCentralChargedPileUp = &fixedGridRhoFastjetCentralChargedPileUp;
     ptr_fixedGridRhoFastjetCentralNeutral =       &fixedGridRhoFastjetCentralNeutral;
-    ptr_Photon_pfRelIso03_all =                   &Photon_pfRelIso03_all;
-    ptr_Photon_pfRelIso03_chg =                   &Photon_pfRelIso03_chg;
+    //ptr_Photon_pfRelIso03_all =                   &Photon_pfRelIso03_all;
+    //ptr_Photon_pfRelIso03_chg =                   &Photon_pfRelIso03_chg;
   }
 }
 
